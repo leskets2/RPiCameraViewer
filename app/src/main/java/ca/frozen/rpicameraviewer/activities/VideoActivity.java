@@ -25,6 +25,10 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 	private FrameLayout frameLayout;
 	private VideoFragment videoFragment;
 
+	private void updateVisibility() {
+		frameLayout.setSystemUiVisibility(frameLayout.getSystemUiVisibility() | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+	}
+
 	//******************************************************************************
 	// onCreate
 	//******************************************************************************
@@ -58,9 +62,7 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 		});
 
 		// set full screen layout
-		int visibility = frameLayout.getSystemUiVisibility();
-		visibility |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
-		frameLayout.setSystemUiVisibility(visibility);
+		updateVisibility();
 
 		// create the video fragment
 		videoFragment = videoFragment.newInstance(camera, true);
@@ -84,9 +86,7 @@ public class VideoActivity extends AppCompatActivity implements VideoFragment.On
 	public void onStartFadeOut()
 	{
 		// hide the status and navigation bars
-		int visibility = frameLayout.getSystemUiVisibility();
-		visibility |= View.SYSTEM_UI_FLAG_FULLSCREEN | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
-		frameLayout.setSystemUiVisibility(visibility);
+		updateVisibility();
 	}
 
 	//******************************************************************************
