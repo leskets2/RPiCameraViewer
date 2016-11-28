@@ -557,7 +557,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 				}
 
 				// create the decoder
-				decoder = MediaCodec.createDecoderByType("video/avc");
+				decoder = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC);
 
 				// create the reader
 				source = camera.getCombinedSource();
@@ -614,7 +614,7 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 												int width = (source.width != 0) ? source.width : parser.width;
 												int height = (source.height != 0) ? source.height : parser.height;
 												//Log.d(TAG, String.format("SPS: size = %d x %d", width, height));
-												format = MediaFormat.createVideoFormat("video/avc", width, height);
+												format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
 												if (source.fps != 0)
 												{
 													format.setInteger(MediaFormat.KEY_FRAME_RATE, source.fps);
