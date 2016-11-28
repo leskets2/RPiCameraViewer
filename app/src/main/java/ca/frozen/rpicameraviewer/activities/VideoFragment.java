@@ -537,7 +537,11 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			int nalLen = 0;
 			int numZeroes = 0;
 			int numReadErrors = 0;
-			long presentationTime = System.nanoTime() / 1000;
+			final long displayFrequencyHz = 60; // TODO: Can we determine the actual value?
+			final long delayNumOfVSYNCs = 2;
+			final long delayAfterDecoding = delayNumOfVSYNCs * 1000000000 / displayFrequencyHz;
+			final long delayForDecoding = 6000000; // TODO: Can we determine the actual value?
+
 			boolean gotSPS = false;
 			boolean gotHeader = false;
 			ByteBuffer[] inputBuffers = null;
@@ -638,8 +642,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 													ByteBuffer inputBuffer = inputBuffers[index];
 													//ByteBuffer inputBuffer = decoder.getInputBuffer(index);
 													inputBuffer.put(nal, 0, nalLen);
+													final long presentationTime = (System.nanoTime() + delayForDecoding + delayAfterDecoding) / 1000;
 													decoder.queueInputBuffer(index, 0, nalLen, presentationTime, 0);
-													presentationTime += 66666;
 												}
 												//Log.d(TAG, String.format("NAL: %d  %d", nalLen, index));
 											}
@@ -670,21 +674,49 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					else
 					{
 						numReadErrors++;
-						if (numReadErrors >= MAX_READ_ERRORS)
+						final int POLL_FACTOR = 10; // poll from the network a little faster.
+						if (numReadErrors >= MAX_READ_ERRORS  * POLL_FACTOR)
 						{
 							setMessage(R.string.error_lost_connection);
 							break;
 						}
+						wait(BUFFER_TIMEOUT/(1000*POLL_FACTOR)); // wait for data from the network before we start the next iteration.
 						//Log.d(TAG, "len == 0");
 					}
 
 					// send an output buffer to the surface
 					if (format != null && decoding)
 					{
-						int index = decoder.dequeueOutputBuffer(info, BUFFER_TIMEOUT);
+
+						int index = decoder.dequeueOutputBuffer(info, 0);
 						if (index >= 0)
 						{
-							decoder.releaseOutputBuffer(index, true);
+							// only display the latest frame that is available.
+							while (true) {
+								final int index_next_frame = decoder.dequeueOutputBuffer(info, 0);
+								if (index_next_frame >= 0)
+								{
+									decoder.releaseOutputBuffer(index, false); // drop this frame
+									index = index_next_frame;
+								} else {
+									break;
+								}
+							}
+							final boolean API_Level_21_or_above = false;
+							if (API_Level_21_or_above) {
+								// ignore the presentation time that we passed to the decoder
+								final boolean lowLatency = true;
+								if (lowLatency) {
+									final long notClose = Long.MIN_VALUE;
+									// decoder.releaseOutputBuffer(index, notClose);
+									throw new Error("Uncomment the previous line and remove this error.");
+								} else {
+									// decoder.releaseOutputBuffer(index, delayAfterDecoding);
+									throw new Error("Uncomment the previous line and remove this error.");
+								}
+							} else {
+								decoder.releaseOutputBuffer(index, true);
+							}
 						}
 					}
 				}
