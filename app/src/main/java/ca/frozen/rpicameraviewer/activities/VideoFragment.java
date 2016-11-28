@@ -541,7 +541,8 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 			boolean gotSPS = false;
 			boolean gotHeader = false;
 			ByteBuffer[] inputBuffers = null;
-
+			final MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
+			
 			try
 			{
 				// get the multicast lock if necessary
@@ -680,7 +681,6 @@ public class VideoFragment extends Fragment implements TextureView.SurfaceTextur
 					// send an output buffer to the surface
 					if (format != null && decoding)
 					{
-						MediaCodec.BufferInfo info = new MediaCodec.BufferInfo();
 						int index = decoder.dequeueOutputBuffer(info, BUFFER_TIMEOUT);
 						if (index >= 0)
 						{
